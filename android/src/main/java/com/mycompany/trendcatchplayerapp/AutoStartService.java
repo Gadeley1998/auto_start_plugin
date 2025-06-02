@@ -6,11 +6,28 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.app.ActivityManager;
 import android.content.Context;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.os.Build;
 
 public class AutoStartService extends Service {
 
     private Handler handler = new Handler();
     private Runnable runnable;
+    private static final String CHANNEL_ID = "AutoStartServiceChannel";
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        createNotificationChannel();
+        Notification notification = new Notification.Builder(this, CHANNEL_ID)
+                .setContentTitle("TrendCatch Player")
+                .setContentText("Auto restart monitoring is active")
+                .setSmallIcon(android.R.drawable.ic_popup_sync)
+                .build();
+        startForeground(1, notification);
+    }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -56,5 +73,19 @@ public class AutoStartService extends Service {
             }
         }
         return false;
+    }
+
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel serviceChannel = new NotificationChannel(
+                    CHANNEL_ID,
+                    "TrendCatch Auto Start Channel",
+                    NotificationManager.IMPORTANCE_LOW
+            );
+            NotificationManager manager = getSystemService(NotificationManager.class);
+            if (manager != null) {
+                manager.createNotificationChannel(serviceChannel);
+            }
+        }
     }
 }
