@@ -13,13 +13,17 @@ public class BootReceiver extends BroadcastReceiver {
         if (Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) {
             Log.d("BootReceiver", "[auto_start] Boot completed - launching MainActivity");
 
-            // Délai optionnel de 5 secondes pour laisser le système respirer
+            // ✅ Démarrer le service de redémarrage périodique
+            Intent serviceIntent = new Intent(context, AutoStartService.class);
+            context.startService(serviceIntent);
+
+            // ✅ Lancer l'application avec un délai (facultatif)
             new Handler().postDelayed(() -> {
                 Intent i = new Intent();
                 i.setClassName("com.mycompany.trendcatchplayerapp", "com.mycompany.trendcatchplayerapp.MainActivity");
                 i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 context.startActivity(i);
-            }, 5000); // délai en ms
+            }, 5000); // délai en millisecondes
         }
     }
 }
