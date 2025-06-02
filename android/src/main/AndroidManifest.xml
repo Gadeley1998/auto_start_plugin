@@ -1,9 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-
-    <!-- Pas strictement obligatoire, mais ok si tu veux être explicite -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-
-    <application />
 </manifest>
