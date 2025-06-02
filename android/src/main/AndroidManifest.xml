@@ -6,10 +6,7 @@
 
     <application
         android:allowBackup="true"
-        android:label="TrendCatch Player"
-        android:icon="@mipmap/ic_launcher"
-        android:supportsRtl="true"
-        android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+        android:supportsRtl="true">
 
         <!-- Boot Receiver -->
         <receiver
