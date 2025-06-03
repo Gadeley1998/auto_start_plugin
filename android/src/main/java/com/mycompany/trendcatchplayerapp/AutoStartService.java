@@ -29,7 +29,8 @@ public class AutoStartService extends Service {
     }
 
     private void startForegroundService() {
-        Intent notificationIntent = new Intent(this, MainActivity.class);
+        Intent notificationIntent = new Intent();
+        notificationIntent.setClassName(this, "com.mycompany.trendcatchplayerapp.MainActivity");
         PendingIntent pendingIntent = PendingIntent.getActivity(
                 this, 0, notificationIntent,
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? PendingIntent.FLAG_IMMUTABLE : 0
