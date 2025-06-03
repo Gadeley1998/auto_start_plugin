@@ -1,32 +1,63 @@
 package com.mycompany.trendcatchplayerapp;
 
 import android.app.Service;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+
 import android.content.Intent;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.app.ActivityManager;
 import android.content.Context;
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.os.Build;
+
+import androidx.core.app.NotificationCompat;
 
 public class AutoStartService extends Service {
 
     private Handler handler = new Handler();
     private Runnable runnable;
-    private static final String CHANNEL_ID = "AutoStartServiceChannel";
+    private static final String CHANNEL_ID = "TrendcatchAutoStartChannel";
 
     @Override
     public void onCreate() {
         super.onCreate();
         createNotificationChannel();
-        Notification notification = new Notification.Builder(this, CHANNEL_ID)
+        startForegroundService();
+    }
+
+    private void startForegroundService() {
+        Intent notificationIntent = new Intent(this, MainActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                this, 0, notificationIntent,
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? PendingIntent.FLAG_IMMUTABLE : 0
+        );
+
+        Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("TrendCatch Player")
-                .setContentText("Auto restart monitoring is active")
+                .setContentText("AutoStartService actif")
                 .setSmallIcon(android.R.drawable.ic_popup_sync)
+                .setContentIntent(pendingIntent)
+                .setOngoing(true)
                 .build();
+
         startForeground(1, notification);
+    }
+
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel serviceChannel = new NotificationChannel(
+                    CHANNEL_ID,
+                    "TrendCatch Auto Start Service",
+                    NotificationManager.IMPORTANCE_LOW
+            );
+            NotificationManager manager = getSystemService(NotificationManager.class);
+            if (manager != null) {
+                manager.createNotificationChannel(serviceChannel);
+            }
+        }
     }
 
     @Override
@@ -41,7 +72,7 @@ public class AutoStartService extends Service {
                     i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     startActivity(i);
                 }
-                handler.postDelayed(this, 60000); // repeat every 60s
+                handler.postDelayed(this, 60000); // every 60 seconds
             }
         };
 
@@ -73,19 +104,5 @@ public class AutoStartService extends Service {
             }
         }
         return false;
-    }
-
-    private void createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel serviceChannel = new NotificationChannel(
-                    CHANNEL_ID,
-                    "TrendCatch Auto Start Channel",
-                    NotificationManager.IMPORTANCE_LOW
-            );
-            NotificationManager manager = getSystemService(NotificationManager.class);
-            if (manager != null) {
-                manager.createNotificationChannel(serviceChannel);
-            }
-        }
     }
 }
