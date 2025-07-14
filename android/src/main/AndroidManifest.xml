@@ -1,5 +1,28 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.trendcatchadvertising.digitaldisplay">
+
+    <!-- Permissions nécessaires -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+
+    <application>
+        <!-- Receiver qui s’active au démarrage de l’appareil -->
+        <receiver
+            android:name=".BootReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- (Si tu utilises un service pour relancer l’app, ajoute-le ici) -->
+        <!--
+        <service
+            android:name=".AutoStartService"
+            android:enabled="true"
+            android:exported="false"/>
+        -->
+    </application>
 </manifest>
