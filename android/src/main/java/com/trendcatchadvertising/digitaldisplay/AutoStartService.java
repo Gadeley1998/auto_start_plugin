@@ -1,4 +1,4 @@
-package com.mycompany.trendcatchplayerapp;
+package com.trendcatchadvertising.digitaldisplay;
 
 import android.app.Service;
 import android.app.Notification;
@@ -30,7 +30,7 @@ public class AutoStartService extends Service {
 
     private void startForegroundService() {
         Intent notificationIntent = new Intent();
-        notificationIntent.setClassName(this, "com.mycompany.trendcatchplayerapp.MainActivity");
+        notificationIntent.setClassName(this, "com.trendcatchadvertising.digitaldisplay.MainActivity");
         PendingIntent pendingIntent = PendingIntent.getActivity(
                 this, 0, notificationIntent,
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? PendingIntent.FLAG_IMMUTABLE : 0
@@ -69,7 +69,7 @@ public class AutoStartService extends Service {
             public void run() {
                 if (!isAppInForeground(getApplicationContext())) {
                     Intent i = new Intent();
-                    i.setClassName("com.mycompany.trendcatchplayerapp", "com.mycompany.trendcatchplayerapp.MainActivity");
+                    i.setClassName("com.trendcatchadvertising.digitaldisplay", "com.trendcatchadvertising.digitaldisplay.MainActivity");
                     i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     startActivity(i);
                 }
