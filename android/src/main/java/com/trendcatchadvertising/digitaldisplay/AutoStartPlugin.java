@@ -1,4 +1,4 @@
-package com.mycompany.trendcatchplayerapp;
+package com.trendcatchadvertising.digitaldisplay;
 
 import androidx.annotation.NonNull;
 
