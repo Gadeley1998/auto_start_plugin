@@ -1,4 +1,4 @@
-package com.mycompany.trendcatchplayerapp;
+package com.trendcatchadvertising.digitaldisplay;
 
 import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
@@ -9,7 +9,8 @@ public class AppRestartReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         if (!isAppInForeground(context)) {
-            Intent launchIntent = context.getPackageManager().getLaunchIntentForPackage("com.mycompany.trendcatchplayerapp");
+            Intent launchIntent = context.getPackageManager()
+                .getLaunchIntentForPackage("com.trendcatchadvertising.digitaldisplay");
             if (launchIntent != null) {
                 launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 context.startActivity(launchIntent);
@@ -23,7 +24,8 @@ public class AppRestartReceiver extends BroadcastReceiver {
             String packageName = context.getPackageName();
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
                 for (ActivityManager.AppTask task : am.getAppTasks()) {
-                    if (task.getTaskInfo().baseIntent.getComponent().getPackageName().equals(packageName)) {
+                    if (task.getTaskInfo().baseIntent.getComponent() != null &&
+                        task.getTaskInfo().baseIntent.getComponent().getPackageName().equals(packageName)) {
                         return true;
                     }
                 }
