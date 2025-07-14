@@ -1,4 +1,4 @@
-package com.mycompany.trendcatchplayerapp;
+package com.trendcatchadvertising.digitaldisplay;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -26,7 +26,7 @@ public class BootReceiver extends BroadcastReceiver {
             new Handler().postDelayed(() -> {
                 try {
                     Intent i = new Intent();
-                    i.setClassName("com.mycompany.trendcatchplayerapp", "com.mycompany.trendcatchplayerapp.MainActivity");
+                    i.setClassName("com.trendcatchadvertising.digitaldisplay", "com.trendcatchadvertising.digitaldisplay.MainActivity");
                     i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     context.startActivity(i);
                     Log.d("BootReceiver", "MainActivity lancé avec succès.");
