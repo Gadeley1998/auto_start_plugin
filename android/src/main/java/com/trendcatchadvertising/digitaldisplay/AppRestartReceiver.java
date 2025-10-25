@@ -4,37 +4,61 @@ import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 
 public class AppRestartReceiver extends BroadcastReceiver {
+
+    private static final String TAG = "AppRestartReceiver";
+
     @Override
     public void onReceive(Context context, Intent intent) {
-        if (!isAppInForeground(context)) {
-            Intent launchIntent = context.getPackageManager()
-                .getLaunchIntentForPackage("com.trendcatchadvertising.digitaldisplay");
-            if (launchIntent != null) {
-                launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                context.startActivity(launchIntent);
+
+        try {
+            if (!isAppVisibleOrForeground(context)) {
+                Log.d(TAG, "App inactive. Relaunching...");
+                restartApp(context);
+            } else {
+                Log.d(TAG, "App already visible or foreground.");
             }
+        } catch (Exception e) {
+            Log.e(TAG, "Error restarting app: " + e.getMessage());
+            restartApp(context); // Sécurité maximale
         }
     }
 
-    private boolean isAppInForeground(Context context) {
-        ActivityManager am = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
-        if (am != null) {
-            String packageName = context.getPackageName();
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-                for (ActivityManager.AppTask task : am.getAppTasks()) {
-                    if (task.getTaskInfo().baseIntent.getComponent() != null &&
-                        task.getTaskInfo().baseIntent.getComponent().getPackageName().equals(packageName)) {
-                        return true;
-                    }
-                }
-            } else {
-                for (ActivityManager.RunningAppProcessInfo appProcess : am.getRunningAppProcesses()) {
-                    if (appProcess.processName.equals(packageName) &&
-                        appProcess.importance == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND) {
-                        return true;
-                    }
+    private void restartApp(Context context) {
+        try {
+            Intent launchIntent = context.getPackageManager()
+                    .getLaunchIntentForPackage(context.getPackageName());
+
+            if (launchIntent != null) {
+                launchIntent.addFlags(
+                        Intent.FLAG_ACTIVITY_NEW_TASK |
+                        Intent.FLAG_ACTIVITY_REORDER_TO_FRONT |
+                        Intent.FLAG_ACTIVITY_CLEAR_TOP
+                );
+                context.startActivity(launchIntent);
+            }
+        } catch (Exception ex) {
+            Log.e(TAG, "Launch intent failed: " + ex.getMessage());
+        }
+    }
+
+    private boolean isAppVisibleOrForeground(Context context) {
+        ActivityManager activityManager =
+                (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+        String pkg = context.getPackageName();
+
+        if (activityManager != null) {
+            for (ActivityManager.RunningAppProcessInfo appProcess :
+                    activityManager.getRunningAppProcesses()) {
+
+                if (appProcess.processName.equals(pkg)) {
+                    int importance = appProcess.importance;
+                    return importance ==
+                            ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND
+                            || importance ==
+                            ActivityManager.RunningAppProcessInfo.IMPORTANCE_VISIBLE;
                 }
             }
         }
