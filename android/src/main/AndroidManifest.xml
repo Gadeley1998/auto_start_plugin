@@ -2,26 +2,38 @@
 
     <!-- Permissions nécessaires -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <application>
-        <!-- Receiver qui s’active au démarrage de l’appareil -->
+
+        <!-- ✅ Surveillance + relance si fermeture système -->
         <receiver
-            android:name=".BootReceiver"
+            android:name="com.trendcatchadvertising.digitaldisplay.AppRestartReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.ACTION_SHUTDOWN" />
+                <action android:name="android.intent.action.ACTION_CLOSE_SYSTEM_DIALOGS" />
+            </intent-filter>
+        </receiver>
+
+        <!-- ✅ Auto-démarrage au boot -->
+        <receiver
+            android:name="com.trendcatchadvertising.digitaldisplay.BootReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </receiver>
 
-        <!-- (Si tu utilises un service pour relancer l’app, ajoute-le ici) -->
-        <!--
+        <!-- ✅ Service foreground persistant intelligent -->
         <service
-            android:name=".AutoStartService"
+            android:name="com.trendcatchadvertising.digitaldisplay.AutoStartService"
             android:enabled="true"
-            android:exported="false"/>
-        -->
+            android:exported="false" />
+
     </application>
 </manifest>
