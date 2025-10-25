@@ -14,7 +14,8 @@ android {
     compileSdkVersion 33
 
     defaultConfig {
-        minSdkVersion 19
+        minSdkVersion 21
+        targetSdkVersion 33
     }
 
     lintOptions {
@@ -22,5 +23,11 @@ android {
     }
 }
 
+repositories {
+    google()
+    mavenCentral()
+}
+
 dependencies {
+    // aucune dépendance Android supplémentaire nécessaire pour ce plugin
 }
