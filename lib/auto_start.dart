@@ -1,13 +1,18 @@
 library auto_start;
 
-import 'dart:async';
 import 'package:flutter/services.dart';
 
+/// Plugin AutoStart
+/// Connecte Flutter à la couche native Android si nécessaire
 class AutoStart {
   static const MethodChannel _channel = MethodChannel('auto_start');
 
-  static Future<String?> get platformVersion async {
-    final String? version = await _channel.invokeMethod('getPlatformVersion');
-    return version;
+  /// Test de communication Android (facultatif)
+  static Future<String?> getPlatformVersion() async {
+    try {
+      return await _channel.invokeMethod<String>('getPlatformVersion');
+    } catch (_) {
+      return null;
+    }
   }
 }
