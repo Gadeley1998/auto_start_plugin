@@ -1,14 +1,7 @@
 name: auto_start
-description: A Flutter plugin to launch the app automatically at device boot.
-version: 1.0.0
+description: A Flutter plugin to launch the app automatically at device boot and keep it alive on Android TV.
+version: 1.0.1
 author: Gadeley Georgy Constant <gadeleygeorgy.constant1@uniq.edu>
-
-flutter:
-  plugin:
-    platforms:
-      android:
-        package: com.trendcatchadvertising.digitaldisplay
-        pluginClass: AutoStartPlugin
 
 environment:
   sdk: ">=2.17.0 <4.0.0"
@@ -17,6 +10,9 @@ dependencies:
   flutter:
     sdk: flutter
 
-platforms:
-  android:
-    package: com.trendcatchadvertising.digitaldisplay
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.trendcatchadvertising.digitaldisplay
+        pluginClass: AutoStartPlugin
