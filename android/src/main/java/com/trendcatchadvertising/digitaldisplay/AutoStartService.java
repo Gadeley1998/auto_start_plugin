@@ -7,11 +7,12 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 
 import android.content.Intent;
+import android.content.Context;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.app.ActivityManager;
-import android.content.Context;
 
 import androidx.core.app.NotificationCompat;
 
@@ -23,30 +24,35 @@ public class AutoStartService extends Service {
     private static final String CHANNEL_ID = "TrendcatchAutoStartChannel";
     private static final int NOTIFICATION_ID = 101;
 
-    // Intelligent intervals
-    private long currentInterval = 30000; // 30 sec (unstable state)
-    private final long STABLE_INTERVAL = 120000; // 120 sec (stable state)
-    private final long UNSTABLE_INTERVAL = 30000; // 30 sec (monitor closely)
+    // Surveillance intelligente
+    private long currentInterval = 30000; // 30 s si instable
+    private final long STABLE_INTERVAL = 120000;   // 120 s si stable
+    private final long UNSTABLE_INTERVAL = 30000;  // 30 s si instable
 
     private int stabilityCounter = 0;
-    private static final int MAX_STABILITY = 5; // After 5 checks: stable mode
+    private static final int MAX_STABILITY = 5;
 
     @Override
     public void onCreate() {
         super.onCreate();
         handler = new Handler();
         createNotificationChannel();
-        startForegroundService();
+        startForegroundServiceWithLaunchIntent();
     }
 
-    private void startForegroundService() {
-        Intent notificationIntent = new Intent(this, MainActivity.class);
-        notificationIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+    private void startForegroundServiceWithLaunchIntent() {
+        Intent launchIntent = getPackageManager().getLaunchIntentForPackage(getPackageName());
+        if (launchIntent == null) {
+            // Fallback minimal vers l’appli elle-même si le launch intent est indisponible
+            launchIntent = new Intent();
+            launchIntent.setPackage(getPackageName());
+        }
+        launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
         PendingIntent pendingIntent = PendingIntent.getActivity(
                 this,
                 0,
-                notificationIntent,
+                launchIntent,
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
                         ? PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT
                         : PendingIntent.FLAG_UPDATE_CURRENT
@@ -94,7 +100,7 @@ public class AutoStartService extends Service {
                     } else {
                         stabilityCounter = 0;
                         currentInterval = UNSTABLE_INTERVAL;
-                        restartApp();
+                        restartAppViaLaunchIntent();
                     }
                 } finally {
                     handler.postDelayed(this, currentInterval);
@@ -112,15 +118,18 @@ public class AutoStartService extends Service {
         if (handler != null && watchdogRunnable != null) {
             handler.removeCallbacks(watchdogRunnable);
         }
-        restartService(); // Force restart if killed
+        restartService();
     }
 
-    private void restartApp() {
-        Intent i = new Intent(this, MainActivity.class);
-        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK |
-                Intent.FLAG_ACTIVITY_REORDER_TO_FRONT |
-                Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        startActivity(i);
+    private void restartAppViaLaunchIntent() {
+        PackageManager pm = getPackageManager();
+        Intent launch = pm.getLaunchIntentForPackage(getPackageName());
+        if (launch != null) {
+            launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                    | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+                    | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(launch);
+        }
     }
 
     private void restartService() {
