@@ -1,13 +1,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Permissions nécessaires -->
+    <!-- 📱 Permissions nécessaires -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
 
     <application>
 
-        <!-- ✅ Surveillance + relance si fermeture système -->
+        <!-- 🧩 Receiver pour redémarrage ou fermeture -->
         <receiver
             android:name="com.trendcatchadvertising.digitaldisplay.AppRestartReceiver"
             android:enabled="true"
@@ -18,7 +18,7 @@
             </intent-filter>
         </receiver>
 
-        <!-- ✅ Auto-démarrage au boot -->
+        <!-- 🚀 Auto-démarrage après reboot -->
         <receiver
             android:name="com.trendcatchadvertising.digitaldisplay.BootReceiver"
             android:enabled="true"
@@ -29,11 +29,13 @@
             </intent-filter>
         </receiver>
 
-        <!-- ✅ Service foreground persistant intelligent -->
+        <!-- ⚙️ Service foreground (doit être exporté pour être lancé depuis receiver système) -->
         <service
             android:name="com.trendcatchadvertising.digitaldisplay.AutoStartService"
             android:enabled="true"
-            android:exported="false" />
+            android:exported="true"
+            android:foregroundServiceType="dataSync|connectedDevice" />
 
     </application>
+
 </manifest>
