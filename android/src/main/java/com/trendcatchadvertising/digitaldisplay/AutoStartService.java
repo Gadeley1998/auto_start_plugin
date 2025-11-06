@@ -5,14 +5,15 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-
 import android.content.Intent;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.IBinder;
 import android.app.ActivityManager;
+import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 
@@ -23,19 +24,21 @@ public class AutoStartService extends Service {
 
     private static final String CHANNEL_ID = "TrendcatchAutoStartChannel";
     private static final int NOTIFICATION_ID = 101;
+    private static final String TAG = "AutoStartService";
 
-    // Surveillance intelligente
     private long currentInterval = 30000; // 30 s si instable
     private final long STABLE_INTERVAL = 120000;   // 120 s si stable
     private final long UNSTABLE_INTERVAL = 30000;  // 30 s si instable
-
     private int stabilityCounter = 0;
     private static final int MAX_STABILITY = 5;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        handler = new Handler();
+
+        // 🟢 Toujours lier le handler au looper principal
+        handler = new Handler(Looper.getMainLooper());
+
         createNotificationChannel();
         startForegroundServiceWithLaunchIntent();
     }
@@ -43,10 +46,10 @@ public class AutoStartService extends Service {
     private void startForegroundServiceWithLaunchIntent() {
         Intent launchIntent = getPackageManager().getLaunchIntentForPackage(getPackageName());
         if (launchIntent == null) {
-            // Fallback minimal vers l’appli elle-même si le launch intent est indisponible
             launchIntent = new Intent();
             launchIntent.setPackage(getPackageName());
         }
+
         launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
         PendingIntent pendingIntent = PendingIntent.getActivity(
@@ -100,7 +103,8 @@ public class AutoStartService extends Service {
                     } else {
                         stabilityCounter = 0;
                         currentInterval = UNSTABLE_INTERVAL;
-                        restartAppViaLaunchIntent();
+                        // ❌ Ne pas lancer d’activité directement
+                        bringAppToForegroundSafely();
                     }
                 } finally {
                     handler.postDelayed(this, currentInterval);
@@ -121,14 +125,35 @@ public class AutoStartService extends Service {
         restartService();
     }
 
-    private void restartAppViaLaunchIntent() {
-        PackageManager pm = getPackageManager();
-        Intent launch = pm.getLaunchIntentForPackage(getPackageName());
-        if (launch != null) {
-            launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
-                    | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
-                    | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            startActivity(launch);
+    /**
+     * ✅ Nouvelle méthode : fait remonter l’application de façon sûre
+     * sans violer les restrictions Android 10+
+     */
+    private void bringAppToForegroundSafely() {
+        try {
+            PackageManager pm = getPackageManager();
+            Intent launch = pm.getLaunchIntentForPackage(getPackageName());
+            if (launch != null) {
+                launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                        | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+                        | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
+                // Au lieu de startActivity() direct → PendingIntent.send()
+                PendingIntent pendingIntent = PendingIntent.getActivity(
+                        this,
+                        0,
+                        launch,
+                        Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+                                ? PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT
+                                : PendingIntent.FLAG_UPDATE_CURRENT
+                );
+                pendingIntent.send(); // ✅ autorisé même depuis un Service foreground
+                Log.d(TAG, "Application ramenée au premier plan via PendingIntent");
+            }
+        } catch (PendingIntent.CanceledException e) {
+            Log.e(TAG, "PendingIntent annulé", e);
+        } catch (Exception e) {
+            Log.e(TAG, "Erreur bringAppToForegroundSafely", e);
         }
     }
 
@@ -149,7 +174,6 @@ public class AutoStartService extends Service {
         if (activityManager != null) {
             for (ActivityManager.RunningAppProcessInfo appProcess :
                     activityManager.getRunningAppProcesses()) {
-
                 if (appProcess.processName.equals(pkg)) {
                     int imp = appProcess.importance;
                     return imp == ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND
