@@ -1,7 +1,7 @@
 package com.trendcatchadvertising.digitaldisplay;
 
 import androidx.annotation.NonNull;
-import android.app.Application;
+import android.content.Context;
 import android.util.Log;
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
@@ -12,57 +12,70 @@ import io.flutter.plugin.common.MethodChannel;
 
 /**
  * AutoStartPlugin
- * Amélioré avec :
- * ✅ Méthode de communication Flutter ↔ Android
- * ✅ Enregistrement automatique du helper batterie
+ * ✅ Communication Flutter ↔ Android
  * ✅ Compatible FlutterPlugin + ActivityAware
+ * ✅ Compatible Android 12+
  */
-public class AutoStartPlugin implements FlutterPlugin, MethodChannel.MethodCallHandler, ActivityAware {
+public final class AutoStartPlugin implements FlutterPlugin, MethodChannel.MethodCallHandler, ActivityAware {
 
+  private static final String TAG = "AutoStartPlugin";
   private MethodChannel channel;
-  private Application application;
+  private Context context;
 
   @Override
   public void onAttachedToEngine(@NonNull FlutterPluginBinding flutterPluginBinding) {
-    application = (Application) flutterPluginBinding.getApplicationContext();
+    context = flutterPluginBinding.getApplicationContext();
 
-    // ✅ Enregistrer le canal
+    // Enregistrement du canal Flutter ↔ Android
     channel = new MethodChannel(flutterPluginBinding.getBinaryMessenger(), "auto_start");
     channel.setMethodCallHandler(this);
 
-    // ✅ Enregistrer BatteryOptimizationHelper AUTO au démarrage
-    Log.d("AutoStartPlugin", "Enregistrement BatteryOptimizationHelper");
-    new BatteryOptimizationHelper(application);
+    Log.i(TAG, "✅ AutoStartPlugin attached to engine.");
+    // Optionnel : helper de batterie (désactivé si non présent)
+    // new BatteryOptimizationHelper((Application) context);
   }
 
   @Override
   public void onMethodCall(@NonNull MethodCall call, @NonNull MethodChannel.Result result) {
-    if (call.method.equals("getPlatformVersion")) {
-      result.success("Android " + android.os.Build.VERSION.RELEASE);
-      Log.d("AutoStartPlugin", "[auto_start] getPlatformVersion exécuté");
-    } else {
-      result.notImplemented();
+    switch (call.method) {
+      case "getPlatformVersion":
+        String version = "Android " + android.os.Build.VERSION.RELEASE;
+        result.success(version);
+        Log.d(TAG, "getPlatformVersion exécuté → " + version);
+        break;
+
+      case "enableAutoStart":
+        Log.d(TAG, "enableAutoStart (placeholder)");
+        // Ici tu pourras implémenter plus tard la logique native
+        result.success(true);
+        break;
+
+      case "isAutoStartEnabled":
+        Log.d(TAG, "isAutoStartEnabled (placeholder)");
+        result.success(true);
+        break;
+
+      default:
+        result.notImplemented();
+        break;
     }
   }
 
   @Override
   public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
-    channel.setMethodCallHandler(null);
+    if (channel != null) {
+      channel.setMethodCallHandler(null);
+      channel = null;
+    }
+    context = null;
+    Log.i(TAG, "🧹 AutoStartPlugin detached from engine.");
   }
 
   // ============================================================================================
-  // ✅ Implémentations ActivityAware pour éviter erreurs sur Android TV
+  // ActivityAware (pour compatibilité Android TV / multi-activité)
   // ============================================================================================
-
-  @Override
-  public void onAttachedToActivity(@NonNull ActivityPluginBinding binding) {}
-
-  @Override
-  public void onDetachedFromActivityForConfigChanges() {}
-
-  @Override
-  public void onReattachedToActivityForConfigChanges(@NonNull ActivityPluginBinding binding) {}
-
-  @Override
-  public void onDetachedFromActivity() {}
+  @Override public void onAttachedToActivity(@NonNull ActivityPluginBinding binding) { }
+  @Override public void onDetachedFromActivityForConfigChanges() { }
+  @Override public void onReattachedToActivityForConfigChanges(@NonNull ActivityPluginBinding binding) { }
+  @Override public void onDetachedFromActivity() { }
 }
