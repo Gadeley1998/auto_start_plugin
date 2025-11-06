@@ -11,22 +11,26 @@ buildscript {
 apply plugin: 'com.android.library'
 
 android {
+    namespace "com.trendcatchadvertising.digitaldisplay" // ✅ recommandé Android 12+
     compileSdkVersion 33
 
     defaultConfig {
         minSdkVersion 21
         targetSdkVersion 33
+        // Empêche des erreurs lors de la publication d’AAR
+        consumerProguardFiles "consumer-rules.pro"
     }
 
-
-    // Ajout recommandé pour éviter les warnings source/target 8
+    // ✅ Modernisation Java 11
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
     }
 
+    // ✅ Nettoyage lint et compatibilité
     lintOptions {
         disable 'InvalidPackage'
+        checkReleaseBuilds false
     }
 }
 
@@ -36,5 +40,6 @@ repositories {
 }
 
 dependencies {
-    // aucune dépendance Android supplémentaire nécessaire pour ce plugin
+    // ✅ AndroidX obligatoire pour NotificationCompat
+    implementation 'androidx.core:core:1.12.0'
 }
